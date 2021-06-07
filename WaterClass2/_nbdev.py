@@ -6,8 +6,8 @@ index = {"say_hello": "00_core.ipynb"}
 
 modules = ["core.py"]
 
-doc_url = "https://cordmaur.github.io/waterclassification/"
+doc_url = "https://cordmaur.github.io/WaterClass2/"
 
-git_url = "https://github.com/cordmaur/waterclassification/tree/master/"
+git_url = "https://github.com/cordmaur/WaterClass2/tree/master/"
 
 def custom_doc_links(name): return None
