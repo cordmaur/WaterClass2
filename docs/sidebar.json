@@ -1,6 +1,7 @@
 {
   "WaterClass2": {
     "Overview": "/",
-    "core": "core.html"
+    "core": "core.html",
+    "GetDB - Database GETDB": "GETDB.html"
   }
 }
