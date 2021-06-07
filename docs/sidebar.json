@@ -1,6 +1,6 @@
 {
   "waterclassification": {
     "Overview": "/",
-    "module name here": "core.html"
+    "core": "core.html"
   }
 }
