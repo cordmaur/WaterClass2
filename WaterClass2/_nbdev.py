@@ -4,7 +4,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {}
 
-modules = ["None.py"]
+modules = []
 
 doc_url = "https://cordmaur.github.io/WaterClass2/"
 
