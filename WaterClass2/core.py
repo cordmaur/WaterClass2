@@ -33,6 +33,15 @@ import pdb
 s2bands = ['443', '490', '560', '665', '705', '740', '783', '842', '865', '940']
 s2bands_norm = [f'n{b}' for b in s2bands]
 
+
+def wavelength_range(ini_wl, last_wl, step=1, prefix=''):
+    """Creates a range of wavelengths from initial to last, in a defined nanometers step."""
+    return [f'{prefix}{wl}' for wl in range(ini_wl, last_wl + 1, step)]
+
+
+all_wls = wavelength_range(450, 950)
+
+
 def create_evenly_spaced_columns(df, step=1, dtype=int, min_col=320, max_col=950):
     num_columns = [column for column in df.columns if not isinstance(column, str)]
     num_columns.sort()
@@ -80,25 +89,29 @@ def create_interpolated_columns(df, step=1, drop_original_columns=True, create_i
     convert_columns_titles_types(df, data_type=str)
     return df
 
-# Cell
+
 def save_obj(obj, name):
     with open(str(name), 'wb') as f:
         pickle.dump(obj, f)
+
 
 def load_obj(name):
     with open(str(name), 'rb') as f:
         result = pickle.load(f)
     return result
 
+
 def wavelength_range(ini_wl, last_wl, step=1, prefix=''):
     "Creates a range of wavelengths from initial to last, in a defined nanometers step."
     return [f'{prefix}{wl}' for wl in range(ini_wl, last_wl+1, step)]
+
 
 def calc_area(df, bands=None, col_name="area"):
     "Calc the integral of the curve and adds it to a new column."
     bands = df.columns[df.columns.str.isdigit()] if bands is None else bands
     df[col_name] = np.trapz(df.set_index('Id')[bands].to_numpy())
     return df
+
 
 def normalize(df, bands=None, inplace=False):
     "Normalize the reflectance spectra by dividing all reflectance values by the area under the curve. All normalized spectra will have area=1."
@@ -109,7 +122,7 @@ def normalize(df, bands=None, inplace=False):
     df_norm.loc[:, bands] = df.loc[:, bands]/df.area.to_numpy()[..., None]
     return df_norm
 
-# Cell
+
 def fig_to_html(fig, buttonsToRemove=[], **kwargs):
     "Converts a plotly figure into a HTML graph and displays it. That is necessary to maintain the interactive functionality of plotly in the jekyll documentation, on Github."
 
@@ -124,6 +137,7 @@ def fig_to_html(fig, buttonsToRemove=[], **kwargs):
 
     display(HTML(data=html.getvalue()))
 
+
 def showfig(fig, publish_mode='fig', **kwargs):
     if publish_mode == 'html':
         fig_to_html(fig, **kwargs)
@@ -135,6 +149,7 @@ def showfig(fig, publish_mode='fig', **kwargs):
         return Image.open(png)
     else:
         return fig
+
 
 def log_color_scatter(*args, **kwargs):
     "Proxy for px.scatter applying log to the color scale."
@@ -188,17 +203,18 @@ def plot_figures(rows, cols, figs: list, base_height=400, titles=None):
     return fig
 
 
-
 def plot_reflectances(df, id_vars=['Id'], Key='Id', color='Id', bands=s2bands, title=''):
 
     melted_df = pd.melt(df.reset_index(), id_vars=id_vars, value_vars=bands)
 
     return px.line(melted_df, x='variable', y='value', color=color, line_group=Key, hover_data=id_vars, title=title)
 
+
 def plot_mean_reflectances(df, group_by, id_vars=['Id'], color='Id', bands=s2bands, title=''):
     mean_df = df.groupby(by=group_by).mean().reset_index()
 
     return plot_reflectances(mean_df, id_vars=id_vars, Key=group_by, color=color, bands=bands, title=title)
+
 
 def plot_ids(df, ids, id_vars=['Id', 'SPM', 'Rio/ Bacia', 'DATA', 'Ponto', 'Projeto'], Key='Id', color='Id',
              bands=s2bands, title=''):
@@ -207,11 +223,11 @@ def plot_ids(df, ids, id_vars=['Id', 'SPM', 'Rio/ Bacia', 'DATA', 'Ponto', 'Proj
     return plot_reflectances(subdf, id_vars, Key, color, bands, title)
 
 
-def plot_reflectances2(df, bands, color='SPM', hover_vars=['SPM', 'Rio/ Bacia'], colormap='viridis', log_color=True,
+def plot_reflectances2(df, bands, color='SPM', hover_vars=['SPM', 'Area'], colormap='viridis', log_color=True,
                        colorbar=True, show_legend=False):
 
     if color:
-        min = df[color].min()
+        min = df[color][df[color] > 0].min()
         max = df[color].max()
 
         cmap = matplotlib.cm.get_cmap(colormap)
@@ -241,7 +257,7 @@ def plot_reflectances2(df, bands, color='SPM', hover_vars=['SPM', 'Rio/ Bacia'],
     fig = go.Figure(data=scatters)
 
     # create the colorbar
-    if colorbar:
+    if colorbar and color:
         colorbar_trace = go.Scatter(x=[None],
                                     y=[None],
                                     mode='markers',
@@ -295,7 +311,6 @@ def plot_grouped_reflectances(df, group='Rio/ Bacia', bands=s2bands, color='SPM'
     return fig
 
 
-# Cell
 def series_to_annotation(s):
     "create a formatted annotation string given the series"
     res = ""
@@ -304,8 +319,9 @@ def series_to_annotation(s):
 
     return res
 
-# Cell
+
 from collections.abc import Iterable
+
 
 def cluster_and_plot_scatter(df, bands, clusters, x, y, color, continuous=True, hover_name=None, labels=None, title='cluster', log_y=False, height=300, marker_size=4):
     "Do the clustering and plot a scatter with the informed axes."
@@ -395,8 +411,6 @@ def clusterize(df, calc_bands, inf_bands=None, n_clusters=2, cluster_band='clust
     return cluster_df
 
 
-
-# Cell
 def calc_df_grouped_stats(df, groupby, variables, nameslist, funcslist):
     "Calculate the statistics of a dataframe, grouped by a field, given a list of variables and aggregate \nfunctions"
     stats = pd.DataFrame()
@@ -414,49 +428,43 @@ def calc_df_grouped_stats(df, groupby, variables, nameslist, funcslist):
 
     return stats
 
-# Cell
 
-# default functions to use with fit
-def nir_red_ratio(x, a, b):
-    return a * np.power(x, b)
+# def nir_red_ratio(x, a, b):
+#     return a * np.power(x, b)
+#
+# def linear(x, a, b):
+#     return a*x+b
+#
+# def expo(x, a, b):
+#     return a*10**x+b
+#
+# def power(x, a, b):
+# #     pdb.set_trace()
+#     return a*(x)**(b)
+#
+# def poly(x, a, b, c, d):
+#     return a*x**b+c*x+d
+#
+# def nechad(red, a=610.94, c=0.2324):
+#     return a * red / (1 - (red / c))
 
-def linear(x, a, b):
-    return a*x+b
-
-def expo(x, a, b):
-    return a*10**x+b
-
-def power(x, a, b):
-#     pdb.set_trace()
-    return a*(x)**(b)
-
-def poly(x, a, b, c, d):
-    return a*x**b+c*x+d
-
-def nechad(red, a=610.94, c=0.2324):
-    return a * red / (1 - (red / c))
-
-
-# Cell
 
 # functions to fet a generic function into a set of data
-def fit_curve(func, X, y):
-    popt, pcov = curve_fit(func, X, y, check_finite=False)
-    r2, rmse, SSE = calc_errors(X, y, func, popt)
-
-    return popt, r2, rmse, SSE
-
-def calc_errors(X, y, func, params=[], decimal=2):
-
-    y_hat = func(X, *params)
-    r2 = round(r2_score(y, y_hat), decimal)
-    rmse = round(math.sqrt(mean_squared_error(y, y_hat)), decimal)
-
-    SSE = round(((y-y_hat)**2).sum(), decimal)
-
-    return r2, rmse, SSE
-
-# Cell
+# def fit_curve(func, X, y):
+#     popt, pcov = curve_fit(func, X, y, check_finite=False)
+#     r2, rmse, SSE = calc_errors(X, y, func, popt)
+#
+#     return popt, r2, rmse, SSE
+#
+# def calc_errors(X, y, func, params=[], decimal=2):
+#
+#     y_hat = func(X, *params)
+#     r2 = round(r2_score(y, y_hat), decimal)
+#     rmse = round(math.sqrt(mean_squared_error(y, y_hat)), decimal)
+#
+#     SSE = round(((y-y_hat)**2).sum(), decimal)
+#
+#     return r2, rmse, SSE
 def plot_data_and_curve(df, X, y, color, hover_name, hover_data, xlabel, func, params=[], title="", height=600):
 
     x = X if X.ndim == 1 else X.iloc[:,0]
@@ -486,6 +494,7 @@ def plot_data_and_curve(df, X, y, color, hover_name, hover_data, xlabel, func, p
 #     fig.update_layout(yaxis_type='log')
 
     return fig
+
 
 def fit_and_plot_curve(df, X, y, color, hover_name, hover_data, xlabel, func, height=600):
 

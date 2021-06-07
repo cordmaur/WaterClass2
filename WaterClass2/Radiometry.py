@@ -13,6 +13,7 @@ import os
 from WaterClass2.core import plot_figures, plot_reflectances2, create_interpolated_columns
 import plotly.graph_objects as go
 import plotly.io as pio
+import plotly.express as px
 import configparser
 
 from openpyxl import load_workbook
@@ -1524,8 +1525,12 @@ class RadiometryDB:
     @property
     def control_file(self): return self.path/self.config['control_file']
 
-    def summary(self):
-        return self.data.groupby(by='Area').count()['Relative_Path']
+    def summary(self, plot=False):
+        summary = self.data.groupby(by='Area').count()['Relative_Path']
+        if plot:
+            return px.bar(summary)
+        else:
+            return summary
 
     # Internal Functions
     def get_measurement_id(self, station_name, measurement):
